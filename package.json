@@ -1,0 +1,34 @@
+{
+	"name": "environmental-dashboard",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {
+		"react": "^18.2.0", 
+		"react-dom": "^18.2.0",
+		"react-scripts": "5.0.1",
+		"react-leaflet": "^4.2.1",
+		"leaflet": "^1.9.4"
+	},
+	
+	"_comment1": [
+	"dependencies = Needed when app runs in browser",
+	"devDependencies = Only needed during build process", 
+	"tailwindcss = The core tool that scans your code and generates CSS.",
+	"postcss = A tool that transforms CSS (Tailwind is built as a PostCSS plugin", 
+	"autoprefixer = Without autoprefixer, your CSS might not work in all browsers."
+	],
+	
+	"devDependencies": {
+		"tailwindcss": "^3.3.0", 
+		"autoprefixer": "^10.4.14", 
+		"postcss": "^8.4.24"
+	},
+	"scripts": {
+		"start": "react-scripts start",
+		"build": "react-scripts build"
+	},
+	"browserslist": {
+		"production": [">0.2%", "not dead", "not op_mini all"],
+		"development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+	}
+}
