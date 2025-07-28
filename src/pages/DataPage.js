@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
 import DataDownloader, { DOWNLOAD_STATES } from '/app/src/components/DataDownloader'
-
+import { DATASETS } from '/app/src/Config.js'
 
 // Data Manager Page with Tailwind and enum
 function DataPage() {
@@ -20,26 +20,11 @@ function DataPage() {
     }));
 
     try {
-      const downloads = [
-        {
-          url: 'https://cdn.jsdelivr.net/npm/natural-earth-geojson@latest/110m_cultural/ne_110m_admin_0_countries.json',
-          filename: 'countries.json',
-          description: 'Country boundaries (110m scale)'
-        },
-        {
-          url: 'https://cdn.jsdelivr.net/npm/natural-earth-geojson@latest/50m_cultural/ne_50m_admin_1_states_provinces.json',
-          filename: 'states.json',
-          description: 'State/province boundaries (50m scale)'
-        },
-        {
-          url: 'https://cdn.jsdelivr.net/npm/natural-earth-geojson@latest/10m_cultural/ne_10m_admin_2_counties.json',
-          filename: 'counties.json',
-          description: 'County boundaries (10m scale, limited coverage)'
-        }
-      ];
-
+      
+	  const dataset = DATASETS.NATURAL_EARTH
+	  
       // Download each file
-      for (const download of downloads) {
+      for (const download of dataset.downloads) {
         setDownloadStatus(prev => ({
           ...prev,
           naturalEarth: { 
@@ -56,7 +41,7 @@ function DataPage() {
         const data = await response.json();
         
         // Store in browser's memory (in a real app, you'd save to filesystem or IndexedDB)
-        localStorage.setItem(`naturalearth_${download.filename}`, JSON.stringify(data));
+        localStorage.setItem(`${dataset.file_prefix}${download.filename}`, JSON.stringify(data));
         
         console.log(`Downloaded ${download.filename}:`, {
           features: data.features?.length || 0,
@@ -68,7 +53,7 @@ function DataPage() {
         ...prev,
         naturalEarth: { 
           state: DOWNLOAD_STATES.SUCCESS, 
-          message: `Successfully downloaded ${downloads.length} boundary files. Check browser console for details.` 
+          message: `Successfully downloaded ${downloads.length} files. Check browser console for details.` 
         }
       }));
 
