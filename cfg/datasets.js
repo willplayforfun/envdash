@@ -1,19 +1,9 @@
 
-// Central navigation configuration
-export const ROUTES = {
-  MAP: {
-    path: '/map',
-    name: 'Environmental Dashboard'
-  },
-  DATA: {
-    path: '/data', 
-    name: 'Data Manager'
-  }
-};
-
 export const DATASETS = {
 	NATURAL_EARTH: {
-		name: "Natural Earth",
+		name: "Natural Earth Boundaries",
+		description: "Global country, state/province, and county boundaries from Natural Earth. Public domain data optimized for web mapping.",
+		
 		file_prefix: "naturalearth_",
 		downloads: [
 			{
@@ -34,3 +24,5 @@ export const DATASETS = {
 		]
 	}
 };
+
+export default DATASETS;

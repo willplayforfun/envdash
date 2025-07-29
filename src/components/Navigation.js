@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ROUTES } from '/app/src/Config'
+import { ROUTES } from '/app/src/NavConfig'
 
 // Navigation component using React Router and Tailwind
 function Navigation() {

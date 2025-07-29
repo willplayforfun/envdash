@@ -1,74 +1,134 @@
 import React, { useState, useEffect } from 'react'
 
 import DataDownloader, { DOWNLOAD_STATES } from '/app/src/components/DataDownloader'
-import { DATASETS } from '/app/src/Config.js'
+import { DATASETS } from '/app/src/cfg/datasets.js'
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const DOWNLOAD_ENDPOINT = `${API_BASE_URL}/api/download`;
 
 // Data Manager Page with Tailwind and enum
 function DataPage() {
-  const [downloadStatus, setDownloadStatus] = useState({
-    naturalEarth: { state: DOWNLOAD_STATES.READY }
-  });
+	const [downloadStatus, setDownloadStatus] = useState({});
+	
+	// function to initialize the dataset status locally based on server check call
+	const checkDataSet = async (key) => 
+	{	
+		try {
+			// post request to server (this works because of the proxy defined in package.json)
+			const response = await fetch(DOWNLOAD_ENDPOINT, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					method: "check",
+					datasetKey: key
+				})
+			});
+			
+			// convert response to json and use to set status
+			const result = await response.json();
+			if (result.success) {
+				if (false) { //TODO
+					setDownloadStatus(prev => ({ ...prev,
+						[key]: { state: DOWNLOAD_STATES.OK }
+					}));
+				} else {
+					setDownloadStatus(prev => ({ ...prev,
+						[key]: { state: DOWNLOAD_STATES.NOTSTARTED }
+					}));
+				}
+			} else {
+				throw new Error(result.message);
+			}
 
-  // Natural Earth downloader
-  const downloadNaturalEarth = async () => {
-    setDownloadStatus(prev => ({
-      ...prev,
-      naturalEarth: { 
-        state: DOWNLOAD_STATES.DOWNLOADING, 
-        message: 'Downloading Natural Earth boundary data...' 
-      }
-    }));
+		} catch (error) {
+			console.error('Init failed:', error);
+			setDownloadStatus(prev => ({ ...prev,
+				[key]: { state: DOWNLOAD_STATES.ERROR, 
+									message: `Server unavailable: ${error.message}` 
+								}
+			}));
+		}
+	};
+	
+	// function to trigger download of the data on the server
+	const downloadDataSet = async (key) => 
+	{
+		setDownloadStatus(prev => ({ ...prev,
+			[key]: { state: DOWNLOAD_STATES.DOWNLOADING }
+		}));
 
-    try {
-      
-	  const dataset = DATASETS.NATURAL_EARTH
-	  
-      // Download each file
-      for (const download of dataset.downloads) {
-        setDownloadStatus(prev => ({
-          ...prev,
-          naturalEarth: { 
-            state: DOWNLOAD_STATES.DOWNLOADING, 
-            message: `Downloading ${download.description}...` 
-          }
-        }));
+		try {
+			const response = await fetch(DOWNLOAD_ENDPOINT, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({})
+			});
+			
+			const result = await response.json();
 
-        const response = await fetch(download.url);
-        if (!response.ok) {
-          throw new Error(`Failed to download ${download.filename}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        // Store in browser's memory (in a real app, you'd save to filesystem or IndexedDB)
-        localStorage.setItem(`${dataset.file_prefix}${download.filename}`, JSON.stringify(data));
-        
-        console.log(`Downloaded ${download.filename}:`, {
-          features: data.features?.length || 0,
-          size: JSON.stringify(data).length
-        });
-      }
+			if (result.success) {
+				setDownloadStatus(prev => ({ ...prev,
+					[key]: { state: DOWNLOAD_STATES.SUCCESS, 
+										message: `${result.message}` 
+									}
+				}));
+			} else {
+				throw new Error(result.message);
+			}
 
-      setDownloadStatus(prev => ({
-        ...prev,
-        naturalEarth: { 
-          state: DOWNLOAD_STATES.SUCCESS, 
-          message: `Successfully downloaded ${downloads.length} files. Check browser console for details.` 
-        }
-      }));
+		} catch (error) {
+			console.error('Download failed:', error);
+			setDownloadStatus(prev => ({ ...prev,
+				[key]: { state: DOWNLOAD_STATES.ERROR, 
+									message: `Download failed: ${error.message}` 
+								}
+			}));
+		}
+	};
+	
+	// function to create DataDownloader element for a dataset
+	const createDataDownloader = (key, dataset) => 
+	{		
+		const files = dataset.downloads.map(download => download.filename);
+		
+		return (
+        <DataDownloader
+					key={key} // each element needs a unique key
+          name={dataset.name}
+          description={dataset.description}
+          status={downloadStatus[key] || { state: DOWNLOAD_STATES.INIT }}
+          onDownload={() => downloadDataSet(key)}
+          files={files}
+        />
+			);
+	};
+	
+	// on-mount effect to request the dataset status from the server
+	useEffect(() => {
+		const initAllDatasets = async () => {
+			// Create array of async operations
+			const operations = Object.entries(DATASETS).map(async ([key, dataset]) => {
+				setDownloadStatus(prev => ({ ...prev,
+					[key]: { state: DOWNLOAD_STATES.INIT }
+				}));
+				await checkDataSet(key);
+			});
+			try {	
+				// Wait for all to complete
+				await Promise.all(operations);
+				console.log('All datasets checked.');
+			} catch (error) {
+				console.error('Error processing datasets:', error);
+			}
+		};
+		initAllDatasets();
+  }, []); // Empty dependency array
 
-    } catch (error) {
-      console.error('Download failed:', error);
-      setDownloadStatus(prev => ({
-        ...prev,
-        naturalEarth: { 
-          state: DOWNLOAD_STATES.ERROR, 
-          message: `Download failed: ${error.message}` 
-        }
-      }));
-    }
-  };
-
+	// create page layout
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">
@@ -83,30 +143,9 @@ function DataPage() {
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           1. Download Raw Data
         </h2>
-        
-        <DataDownloader
-          name="Natural Earth Boundaries"
-          description="Global country, state/province, and county boundaries from Natural Earth. Public domain data optimized for web mapping."
-          status={downloadStatus.naturalEarth}
-          onDownload={downloadNaturalEarth}
-          files={['countries.json', 'states.json', 'counties.json']}
-        />
-        
-        <DataDownloader
-          name="EPA Air Quality Data"
-          description="PM2.5 and AQI data from EPA monitoring stations. County-level aggregated data."
-          status={{ state: DOWNLOAD_STATES.READY }}
-          onDownload={() => alert('EPA downloader coming soon!')}
-          files={['epa_pm25_county.json', 'epa_aqi_monitors.json']}
-        />
-        
-        <DataDownloader
-          name="CDC Heat Stress Data"
-          description="Heat-related health impacts and temperature data from CDC Environmental Health Tracking."
-          status={{ state: DOWNLOAD_STATES.READY }}
-          onDownload={() => alert('CDC downloader coming soon!')}
-          files={['cdc_heat_county.json', 'cdc_heat_mortality.json']}
-        />
+				{Object.entries(DATASETS).map( ([key, dataset]) => (
+					createDataDownloader(key, dataset)
+				))}
       </section>
 
       <section className="mb-8">

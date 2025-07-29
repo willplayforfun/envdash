@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import { ROUTES } from '/app/src/Config'
+import { ROUTES } from '/app/src/NavConfig'
 
 import Navigation from '/app/src/components/Navigation'
 import MapPage from './pages/MapPage';
@@ -11,7 +11,7 @@ import DataPage from './pages/DataPage';
 function EnvironmentalDashboardApp() {
   return (
     <Router>
-      <div className="h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col">
         <Navigation />
         
         <div className="flex-1 overflow-hidden">

@@ -1,5 +1,5 @@
 # Start with a pre-built image that has Node.js installed
-FROM node:18-alpine
+FROM node:22-alpine
 
 # Set the working directory inside the container
 WORKDIR /app
