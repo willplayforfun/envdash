@@ -1,2 +1,3 @@
 src/config/DataSets.js
+public/data/*
 build.log

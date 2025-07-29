@@ -71,7 +71,10 @@ function DataDownloader({ name, description, status, onDownload, files = [] }) {
 						{getStatusText()}
 					</span>
 					<button
-						onClick={onDownload}
+						onClick={(e) => {
+							e.preventDefault();
+							onDownload();
+						}}
 						disabled={isDisabled}
 						className={`px-3 py-1.5 text-sm rounded transition-colors duration-200 ${
 							isDisabled 

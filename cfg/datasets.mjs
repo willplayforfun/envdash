@@ -24,5 +24,3 @@ export const DATASETS = {
 		]
 	}
 };
-
-export default DATASETS;

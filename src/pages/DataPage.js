@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
 import DataDownloader, { DOWNLOAD_STATES } from '/app/src/components/DataDownloader'
-import { DATASETS } from '/app/src/cfg/datasets.js'
+import { DATASETS } from '/app/src/cfg/datasets.mjs'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 const DOWNLOAD_ENDPOINT = `${API_BASE_URL}/api/download`;
@@ -14,7 +14,7 @@ function DataPage() {
 	const checkDataSet = async (key) => 
 	{	
 		try {
-			// post request to server (this works because of the proxy defined in package.json)
+			// post request to server
 			const response = await fetch(DOWNLOAD_ENDPOINT, {
 				method: 'POST',
 				headers: {
@@ -29,7 +29,7 @@ function DataPage() {
 			// convert response to json and use to set status
 			const result = await response.json();
 			if (result.success) {
-				if (false) { //TODO
+				if (result.status) {
 					setDownloadStatus(prev => ({ ...prev,
 						[key]: { state: DOWNLOAD_STATES.OK }
 					}));
@@ -65,7 +65,10 @@ function DataPage() {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({})
+				body: JSON.stringify({
+					method: "download",
+					datasetKey: key
+				})
 			});
 			
 			const result = await response.json();

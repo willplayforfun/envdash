@@ -29,7 +29,7 @@
 		"postcss": "^8.4.24"
 	},
 	"scripts": {
-    "copy-config": "cp cfg/datasets.js src/cfg/datasets.js",
+    "copy-config": "cp cfg/datasets.mjs src/cfg/datasets.mjs",
 		"prestart": "npm run copy-config",
     "prebuild": "npm run copy-config",
 		"start": "react-scripts start",
