@@ -5,9 +5,12 @@ import { DATASETS } from '/app/src/cfg/datasets.mjs'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 const DOWNLOAD_ENDPOINT = `${API_BASE_URL}/api/download`;
+const DELETE_ALL_ENDPOINT = `${API_BASE_URL}/api/delete-all`;
 
 // Data Manager Page with Tailwind and enum
 function DataPage() {
+	
+	// Download state and controls
 	const [downloadStatus, setDownloadStatus] = useState({});
 	
 	// function to initialize the dataset status locally based on server check call
@@ -93,6 +96,57 @@ function DataPage() {
 		}
 	};
 	
+	// Data deletion button
+	const [isDeleting, setIsDeleting] = useState(false);
+	const [deleteMessage, setDeleteMessage] = useState('');
+	const deleteAllData = async () => {
+		if (!window.confirm('Are you sure you want to delete all downloaded data?')) {
+			return;
+		}
+
+		setIsDeleting(true);
+		setDeleteMessage('Deleting all data...');
+
+		try {
+			const response = await fetch(DELETE_ALL_ENDPOINT, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				}
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				// Reset all download statuses to require checking again
+				const resetStatus = {};
+				Object.keys(DATASETS).forEach(key => {
+					resetStatus[key] = { state: DOWNLOAD_STATES.NOTSTARTED };
+				});
+				setDownloadStatus(resetStatus);
+
+				setDeleteMessage(`✅ ${result.message}`);
+				
+				// Clear success message after 3 seconds
+				setTimeout(() => {
+					setDeleteMessage('');
+				}, 3000);
+			} else {
+				throw new Error(result.message || 'Delete operation failed');
+			}
+		} catch (error) {
+			console.error('Delete failed:', error);
+			setDeleteMessage(`❌ Delete failed: ${error.message}`);
+			
+			// Clear error message after 5 seconds
+			setTimeout(() => {
+				setDeleteMessage('');
+			}, 5000);
+		} finally {
+			setIsDeleting(false);
+		}
+	};
+	
 	// function to create DataDownloader element for a dataset
 	const createDataDownloader = (key, dataset) => 
 	{		
@@ -138,10 +192,10 @@ function DataPage() {
         Environmental Data Manager
       </h1>
       <p className="text-gray-600 mb-8 text-base">
-        Download and process environmental and geographic data for the dashboard. 
-        All data is stored locally in your browser.
+        Download and process environmental and geographic data for the dashboard.
       </p>
 
+			{/* DOWNLOAD SECTION */}
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           1. Download Raw Data
@@ -160,7 +214,7 @@ function DataPage() {
         </div>
       </section>
 
-      <section>
+      <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">
           3. Validate Data Quality
         </h2>
@@ -168,6 +222,38 @@ function DataPage() {
           Data validation reports will appear here once data is processed.
         </div>
       </section>
+			
+			
+			{/* DELETE SECTION */}
+			<section className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+				<div className="flex items-center justify-between">
+					<div>
+						<h3 className="text-lg font-semibold text-red-800 mb-1">
+							Data Management
+						</h3>
+						<p className="text-sm text-red-600">
+							Remove all downloaded data files from the server.
+						</p>
+					</div>
+					<button
+						onClick={deleteAllData}
+						disabled={isDeleting}
+						className={`px-4 py-2 rounded-md font-medium transition-colors ${
+							isDeleting
+								? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+								: 'bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
+						}`}
+					>
+						{isDeleting ? 'Deleting...' : 'Delete All Data'}
+					</button>
+				</div>
+				{deleteMessage && (
+					<div className="mt-3 text-sm font-medium">
+						{deleteMessage}
+					</div>
+				)}
+			</section>
+
     </div>
   );
 }

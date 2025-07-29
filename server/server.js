@@ -29,40 +29,41 @@ const loadConfig = async () => {
   return CONFIG_CACHE;
 };
 
+const dataDir = path.join(__dirname, '../public/data');
+		
+// =====
+// Helper functions
+const fileExists = async (filePath) => {
+	try {
+		await fs.access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+};
+const getFullFilePath = (filename) => path.join(dataDir, filename);
+// =====
 
 
 // Download endpoint
 app.post('/api/download', async (req, res) => {
   try {
 
-    const { DATASETS } = await loadConfig();
-		const datasetKey = req.body.datasetKey;
+    // Ensure data directory exists
+    await fs.mkdir(dataDir, { recursive: true });
 		
+		// load datasets cfg
+    const { DATASETS } = await loadConfig();
+		
+		// get dataset based on request key
+		const datasetKey = req.body.datasetKey;
 		if (DATASETS[datasetKey] == undefined) {
 			throw new Error(`No dataset ${datasetKey}`);
 		}
-		
     const dataset = DATASETS[datasetKey];
 
-    // Ensure data directory exists
-    const dataDir = path.join(__dirname, '../public/data');
-    await fs.mkdir(dataDir, { recursive: true });
-		
-		// =====
-		// Helper functions
-		const fileExists = async (filePath) => {
-			try {
-				await fs.access(filePath);
-				return true;
-			} catch {
-				return false;
-			}
-		};
-		const getFullFilePath = (filename) => path.join(dataDir, filename);
-		// =====
-		
+		// perform operation based on request method
 		const method = req.body.method;
-		
 		if (method === "check") 
 		{
 			// Check if all required files exist
@@ -117,6 +118,72 @@ app.post('/api/download', async (req, res) => {
 			});
 		}
 		
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+
+// Delete all data endpoint
+app.post('/api/delete-all', async (req, res) => {
+  try {
+    // Check if data directory exists
+    if (!(await fileExists(dataDir))) {
+      return res.json({
+        success: true,
+        message: 'No data directory found - nothing to delete',
+        filesDeleted: 0
+      });
+    }
+
+    // Read directory contents
+    const files = await fs.readdir(dataDir);
+    let deletedCount = 0;
+    const deletedFiles = [];
+
+    // Delete each file in the data directory
+    for (const file of files) {
+      const filePath = path.join(dataDir, file);
+      
+      try {
+        // Check if it's a file (not a subdirectory)
+        const stats = await fs.stat(filePath);
+        if (stats.isFile()) {
+          await fs.unlink(filePath);
+          deletedFiles.push(file);
+          deletedCount++;
+          console.log(`Deleted file: ${file}`);
+        }
+      } catch (fileError) {
+        console.warn(`Failed to delete file ${file}:`, fileError.message);
+        // Continue with other files even if one fails
+      }
+    }
+
+    // Try to remove the directory if it's empty
+    try {
+      const remainingFiles = await fs.readdir(dataDir);
+      if (remainingFiles.length === 0) {
+        await fs.rmdir(dataDir);
+        console.log('Removed empty data directory');
+      }
+    } catch (dirError) {
+      console.log('Could not remove data directory:', dirError.message);
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} file${deletedCount !== 1 ? 's' : ''}`,
+      filesDeleted: deletedCount,
+      deletedFiles: deletedFiles
+    });
+
+    console.log(`Delete operation completed: ${deletedCount} files removed`);
+
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({
