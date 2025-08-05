@@ -8,5 +8,9 @@ export const ROUTES = {
   DATA: {
     path: '/data', 
     name: 'Data Manager'
+  },
+  TEST: {
+    path: '/test',
+    name: 'API Test'
   }
 };

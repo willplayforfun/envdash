@@ -18,7 +18,7 @@ class BoundaryService {
 
   async loadConfig() {
     if (!this.config) {
-      const configModule = await import(path.join(__dirname, '../../cfg/datasets.js'));
+      const configModule = await import('/app/cfg/datasets.mjs');
       this.config = configModule.DATASETS.NATURAL_EARTH;
     }
     return this.config;

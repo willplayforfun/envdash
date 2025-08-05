@@ -8,6 +8,7 @@ import ConnectionErrorOverlay from "./components/ConnectionErrorOverlay";
 
 import MapPage from './pages/MapPage';
 import DataPage from './pages/DataPage';
+import ApiTestPage from "./pages/ApiTestPage";
 
 import useDataManager from "./hooks/useDataManager";
 
@@ -53,6 +54,7 @@ function EnvironmentalDashboardApp() {
             <Route path="/" element={<Navigate to="/map" replace />} />
             <Route path={ROUTES.MAP.path} element={<MapPage />} />
             <Route path={ROUTES.DATA.path} element={<DataPage />} />
+            <Route path={ROUTES.TEST.path} element={<ApiTestPage />} />
           </Routes>
         </div>
       </div>

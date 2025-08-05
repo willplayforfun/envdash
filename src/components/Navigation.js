@@ -22,6 +22,9 @@ function Navigation() {
       <Link to={ROUTES.DATA.path} className={linkClass(ROUTES.DATA.path)}>
         {ROUTES.DATA.name}
       </Link>
+      <Link to={ROUTES.TEST.path} className={`${linkClass(ROUTES.TEST.path)} ml-3`}>
+        {ROUTES.TEST.name}
+      </Link>
     </nav>
   );
 }
