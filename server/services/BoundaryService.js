@@ -43,44 +43,116 @@ class BoundaryService {
   }
 
   /**
+   * Extract only essential properties from a feature
+   */
+  extractEssentialProperties(feature, level) {
+    const props = feature.properties;
+    let code, name;
+
+    // Extract code and name based on level
+    if (level === 0) {
+      // Countries
+      code = props.ISO_A2 || props.iso_a2;
+      name = props.NAME || props.name || props.NAME_EN || props.ADMIN || props.admin;
+    } else if (level === 1) {
+      // States/Provinces
+      // Try to find the state code - it might be in various formats
+      code = props.iso_3166_2 || props.ISO_3166_2 ||
+             props.postal || props.POSTAL ||
+             props.STUSPS || props.code_hasc ||
+             props.abbrev || props.ABBREV;
+
+      // If we have a full ISO code like "US-CA", extract just the state part
+      if (code && code.includes('-')) {
+        code = code.split('-')[1];
+      }
+
+      name = props.NAME || props.name || props.NAME_1 || props.name_1 ||
+             props.ADMIN || props.admin;
+    } else if (level === 2) {
+      // Counties
+      code = props.GEOID || props.FIPS || props.fips ||
+             props.ADM2_CODE || props.adm2_code ||
+             props.CODE || props.code;
+
+      name = props.NAME || props.name || props.NAME_2 || props.name_2 ||
+             props.ADMIN || props.admin;
+    }
+
+    // Return simplified feature
+    return {
+      type: 'Feature',
+      properties: {
+        code: code || 'UNKNOWN',
+        name: name || 'Unknown',
+        level: level
+      },
+      geometry: feature.geometry,
+      bbox: feature.bbox // Include bbox if it exists
+    };
+  }
+
+  /**
    * Filter GeoJSON features based on parent code
    */
   filterFeatures(geojson, level, parentCode) {
     if (!parentCode) {
-      return geojson; // No filtering needed
+      return geojson.features; // No filtering needed
     }
 
-    // Filter logic based on level and parentCode
     let filteredFeatures;
 
     if (level == 1) {
       // Level 1 (states) - filter by country
       filteredFeatures = geojson.features.filter(feature => {
-        const countryCode = feature.properties.ISO_A2 ||
-                           feature.properties.adm0_a3 ||
-                           feature.properties.admin;
-        return countryCode === parentCode;
+        const props = feature.properties;
+
+        // Check country code
+        const countryCode = props.ISO_A2 || props.iso_a2 ||
+                           props.ADM0_A3 || props.adm0_a3;
+
+        // Check if iso_3166_2 starts with the parent code
+        const fullCode = props.iso_3166_2 || props.ISO_3166_2;
+        const matchesFullCode = fullCode && fullCode.startsWith(parentCode + '-');
+
+        return countryCode === parentCode || matchesFullCode;
       });
     } else if (level == 2) {
       // Level 2 (counties) - filter by state
-      // parentCode format expected: "US-CA" (country-state)
       const [countryCode, stateCode] = parentCode.split('-');
+
       filteredFeatures = geojson.features.filter(feature => {
-        const featureCountry = feature.properties.ISO_A2 || feature.properties.adm0_a3;
-        const featureState = feature.properties.NAME_1 ||
-                            feature.properties.state ||
-                            feature.properties.admin_1;
-        return featureCountry === countryCode && featureState === stateCode;
+        const props = feature.properties;
+
+        // Check country
+        const featureCountry = props.ISO_A2 || props.iso_a2 ||
+                              props.ADM0_A3 || props.adm0_a3;
+
+        // Check state - multiple possible fields
+        const stateAbbr = props.STUSPS || props.STATE || props.state ||
+                         props.POSTAL || props.postal;
+        const stateName = props.NAME_1 || props.name_1 || props.admin_1;
+        const stateISO = props.iso_3166_2 || props.ISO_3166_2;
+
+        // Extract state code from full ISO if needed
+        let stateFromISO = null;
+        if (stateISO && stateISO.includes('-')) {
+          stateFromISO = stateISO.split('-')[1];
+        }
+
+        const countryMatches = featureCountry === countryCode;
+        const stateMatches = stateAbbr === stateCode ||
+                           stateName === stateCode ||
+                           stateFromISO === stateCode;
+
+        return countryMatches && stateMatches;
       });
     } else {
-      // Unknown level, return as-is
+      // Level 0 or unknown level, return all
       filteredFeatures = geojson.features;
     }
 
-    return {
-      ...geojson,
-      features: filteredFeatures
-    };
+    return filteredFeatures;
   }
 
   /**
@@ -123,16 +195,27 @@ class BoundaryService {
       const version = cacheService.updateFileHash(filename, fileData);
 
       // Filter features if parentCode is provided
-      const filteredData = this.filterFeatures(geojson, level, parentCode);
+      const filteredFeatures = this.filterFeatures(geojson, level, parentCode);
+
+      // Extract only essential properties from each feature
+      const simplifiedFeatures = filteredFeatures.map(feature =>
+        this.extractEssentialProperties(feature, level)
+      );
+
+      // Create simplified GeoJSON
+      const simplifiedData = {
+        type: 'FeatureCollection',
+        features: simplifiedFeatures
+      };
 
       res.json({
         success: true,
-        data: filteredData,
+        data: simplifiedData,
         version,
         metadata: {
           level,
           parentCode,
-          count: filteredData.features.length,
+          count: simplifiedFeatures.length,
           sourceFile: filename
         }
       });
