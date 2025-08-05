@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Health Dashboard - Map Mockup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .map-area {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d1e8e4 100%);
+            position: relative;
+        }
+        .country-boundary {
+            stroke: #6b7280;
+            stroke-width: 1;
+            fill: rgba(156, 163, 175, 0.1);
+        }
+        .state-boundary {
+            stroke: #059669;
+            stroke-width: 1.5;
+            fill: rgba(16, 185, 129, 0.15);
+        }
+        .selected-boundary {
+            stroke: #3b82f6;
+            stroke-width: 3;
+            fill: rgba(59, 130, 246, 0.2);
+        }
+        .section-content {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+        }
+        .section-collapsed {
+            max-height: 0;
+        }
+        .section-expanded {
+            max-height: 500px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="px-6 py-3">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold text-gray-900">Environmental Health Dashboard</h1>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-blue-600 font-medium">Map</a>
+                    <a href="#" class="text-gray-600 hover:text-gray-900">Data</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex h-screen">
+        <!-- Map Container -->
+        <div class="flex-1 relative">
+            <!-- Map Area -->
+            <div class="map-area h-full">
+                <!-- Mock Map with SVG boundaries -->
+                <svg class="w-full h-full" viewBox="0 0 800 600">
+                    <!-- Background -->
+                    <rect width="800" height="600" fill="#e8f4f8"/>
+                    
+                    <!-- Mock country boundaries -->
+                    <path d="M 100 150 L 300 120 L 350 200 L 250 280 L 120 250 Z" class="country-boundary"/>
+                    <path d="M 350 200 L 500 180 L 550 250 L 480 320 L 350 300 Z" class="country-boundary"/>
+                    <path d="M 250 280 L 480 320 L 520 400 L 300 450 L 200 380 Z" class="selected-boundary"/>
+                    
+                    <!-- Mock state boundaries within selected country -->
+                    <path d="M 250 280 L 350 290 L 340 350 L 280 360 Z" class="state-boundary"/>
+                    <path d="M 350 290 L 450 300 L 440 360 L 340 350 Z" class="state-boundary"/>
+                    <path d="M 280 360 L 440 360 L 420 420 L 300 430 Z" class="state-boundary"/>
+                    
+                    <!-- Hover indicator -->
+                    <circle cx="370" cy="330" r="4" fill="#3b82f6" opacity="0.8"/>
+                </svg>
+                
+                <!-- Map Controls -->
+                <div class="absolute bottom-4 left-4 bg-white rounded shadow-lg border">
+                    <button class="px-3 py-2 hover:bg-gray-50 border-b">+</button>
+                    <button class="px-3 py-2 hover:bg-gray-50">−</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="w-96 bg-white shadow-lg border-l overflow-y-auto">
+            <div class="p-6">
+                <!-- Search Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Search & Navigate</h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="section-content section-expanded">
+                        <!-- Search Bar -->
+                        <div class="relative mb-4">
+                            <input 
+                                type="text" 
+                                placeholder="Search locations..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Breadcrumb Navigation -->
+                        <div class="mb-4">
+                            <div class="flex items-center space-x-2 text-sm">
+                                <button class="text-blue-600 hover:text-blue-800">Global</button>
+                                <span class="text-gray-400">/</span>
+                                <button class="text-blue-600 hover:text-blue-800">United States</button>
+                                <span class="text-gray-400">/</span>
+                                <span class="text-gray-900 font-medium">California</span>
+                            </div>
+                            <button class="text-sm text-blue-600 hover:text-blue-800 mt-1">
+                                ← Go up one level
+                            </button>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                Reset to Global
+                            </button>
+                            <button class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                                My Location
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Controls Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Map Layers</h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="section-content section-collapsed">
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" checked class="mr-3 rounded">
+                                <span class="text-sm">Boundaries</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3 rounded">
+                                <span class="text-sm">PM2.5 Overlay</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3 rounded">
+                                <span class="text-sm">Population Density</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3 rounded">
+                                <span class="text-sm">Heat Risk</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Info Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Location Details</h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="section-content section-expanded">
+                        <div class="mb-4">
+                            <h2 class="text-xl font-bold text-gray-900 mb-1">California</h2>
+                            <p class="text-gray-600">State, United States</p>
+                            <div class="mt-2 text-sm text-gray-500">
+                                Population: ~39.5M • Area: 423,970 km²
+                            </div>
+                        </div>
+
+                        <div class="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded p-3">
+                            Click on counties below to drill down further
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Data Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-900">Environmental Health</h3>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="section-content section-expanded">
+                        <div class="space-y-3">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-medium text-gray-900">Air Pollution (PM2.5)</h4>
+                                    <span class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">High</span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <strong>1.8</strong> QALYs lost per 100k population annually
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">Click for details →</div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-medium text-gray-900">Heat Stress</h4>
+                                    <span class="px-2 py-1 bg-yellow-500 text-white text-xs rounded-full">Medium</span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <strong>1.2</strong> QALYs lost per 100k population annually
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">Click for details →</div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-medium text-gray-900">Wildfire Smoke</h4>
+                                    <span class="px-2 py-1 bg-yellow-500 text-white text-xs rounded-full">Medium</span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <strong>0.7</strong> QALYs lost per 100k population annually
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">Click for details →</div>
+                            </div>
+                        </div>
+                        
+                        <button class="w-full mt-4 py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 rounded hover:bg-blue-50">
+                            View Detailed Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Connection Status -->
+                <div class="text-xs text-gray-500 border-t pt-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                            Connected
+                        </div>
+                        <button class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Error Overlay (hidden by default) -->
+    <div class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+            <div class="text-center">
+                <div class="text-red-500 text-6xl mb-4">⚠️</div>
+                <h2 class="text-xl font-semibold text-gray-900 mb-2">Connection Lost</h2>
+                <p class="text-gray-600 mb-6">
+                    Unable to connect to the server. Please check your internet connection.
+                </p>
+                <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Retry Connection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple collapse/expand functionality for demo
+        document.querySelectorAll('button').forEach(button => {
+            const svg = button.querySelector('svg');
+            if (svg && svg.querySelector('path[d*="M19 9l-7 7-7-7"]')) {
+                button.addEventListener('click', () => {
+                    const content = button.closest('.mb-6').querySelector('.section-content');
+                    content.classList.toggle('section-collapsed');
+                    content.classList.toggle('section-expanded');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
