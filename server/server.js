@@ -1,4 +1,42 @@
 const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Mount services
+const dataService = require('./services/DataService');
+app.use('/api/data', dataService.router);
+
+const boundaryService = require('./services/BoundaryService');
+app.use('/api/boundaries', boundaryService.router);
+
+// Error handling middleware
+jsonErrorHandler = (error, req, res, next) => {
+  console.error('Unhandled error:', error);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+  });
+};
+app.use(jsonErrorHandler);
+
+// Start server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Environmental Dashboard API running on port ${PORT}`);
+});
+
+/*
+const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
@@ -197,3 +235,4 @@ const PORT = process.env.API_PORT || 3001;
 app.listen(PORT, () => {
   console.log(`API server running on port ${PORT}`);
 });
+*/

@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react'
 
-import DataDownloader, { DOWNLOAD_STATES } from '/app/src/components/DataDownloader'
-import { DATASETS } from '/app/src/cfg/datasets.mjs'
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-const DOWNLOAD_ENDPOINT = `${API_BASE_URL}/api/download`;
-const DELETE_ALL_ENDPOINT = `${API_BASE_URL}/api/delete-all`;
+import DataDownloader, { DOWNLOAD_STATES } from '../components/DataDownloader'
+import { DATASETS } from '../cfg/datasets.mjs'
+import API_ENDPOINTS from '../ApiConfig.js'
 
 // Data Manager Page with Tailwind and enum
 function DataPage() {
@@ -17,18 +14,19 @@ function DataPage() {
 	const checkDataSet = async (key) => 
 	{	
 		try {
-			// post request to server
-			const response = await fetch(DOWNLOAD_ENDPOINT, {
-				method: 'POST',
+			// request to server
+			const response = await fetch(API_ENDPOINTS.dataStatus(key), {
+				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({
-					method: "check",
-					datasetKey: key
-				})
 			});
-			
+
+			if (!response.ok) {
+				const responseBody = await response.text();
+				throw new Error(`Server unavailable: ${responseBody}`);
+			}
+
 			// convert response to json and use to set status
 			const result = await response.json();
 			if (result.success) {
@@ -42,15 +40,16 @@ function DataPage() {
 					}));
 				}
 			} else {
-				throw new Error(result.message);
+				throw new Error(`Server response parse failure`);
 			}
 
 		} catch (error) {
 			console.error('Init failed:', error);
 			setDownloadStatus(prev => ({ ...prev,
-				[key]: { state: DOWNLOAD_STATES.ERROR, 
-									message: `Server unavailable: ${error.message}` 
-								}
+				[key]: {
+					state: DOWNLOAD_STATES.ERROR,
+					message: error.message
+				}
 			}));
 		}
 	};
@@ -63,24 +62,27 @@ function DataPage() {
 		}));
 
 		try {
-			const response = await fetch(DOWNLOAD_ENDPOINT, {
+			const response = await fetch(API_ENDPOINTS.dataDownload(key), {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				/*
 				body: JSON.stringify({
 					method: "download",
 					datasetKey: key
 				})
+				 */
 			});
 			
 			const result = await response.json();
 
 			if (result.success) {
 				setDownloadStatus(prev => ({ ...prev,
-					[key]: { state: DOWNLOAD_STATES.SUCCESS, 
-										message: `${result.message}` 
-									}
+					[key]: {
+						state: DOWNLOAD_STATES.SUCCESS,
+						message: `${result.message}`
+					}
 				}));
 			} else {
 				throw new Error(result.message);
@@ -89,9 +91,10 @@ function DataPage() {
 		} catch (error) {
 			console.error('Download failed:', error);
 			setDownloadStatus(prev => ({ ...prev,
-				[key]: { state: DOWNLOAD_STATES.ERROR, 
-									message: `Download failed: ${error.message}` 
-								}
+				[key]: {
+					state: DOWNLOAD_STATES.ERROR,
+					message: `Download failed: ${error.message}`
+				}
 			}));
 		}
 	};
@@ -108,8 +111,8 @@ function DataPage() {
 		setDeleteMessage('Deleting all data...');
 
 		try {
-			const response = await fetch(DELETE_ALL_ENDPOINT, {
-				method: 'POST',
+			const response = await fetch(API_ENDPOINTS.dataClear(), {
+				method: 'DELETE',
 				headers: {
 					'Content-Type': 'application/json',
 				}
