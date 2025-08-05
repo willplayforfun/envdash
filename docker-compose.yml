@@ -11,6 +11,7 @@ services:
     ports:
       - "3000:3000"    # React
       - "3001:3001"    # Express API
+      - "9229:9229"  # Debug port
     volumes:
       - ./src:/app/src
       - ./public:/app/public

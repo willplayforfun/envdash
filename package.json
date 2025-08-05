@@ -34,7 +34,7 @@
     "prebuild": "npm run copy-config",
 		"start": "react-scripts start",
 		"build": "react-scripts build",
-		"server": "nodemon server/server.js"
+		"server": "nodemon --inspect=0.0.0.0:9229 server/server.js"
 	},
 	"browserslist": {
 		"production": [">0.2%", "not dead", "not op_mini all"],

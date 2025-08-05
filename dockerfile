@@ -13,8 +13,5 @@ RUN npm install
 # Copy the rest of your source code
 COPY . .
 
-# Tell Docker this app uses port 3000
-EXPOSE 3000
-
-# The command to run when the container starts
-CMD ["npm", "start"]
+# No ports exposed - those are specified by the docker-compose.yml 
+# No command - it is specified by the docker-compose.yml
